@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Glass Data Management Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base Setup & Liquid Glass Variables */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border-top: rgba(255, 255, 255, 0.4);
+            --glass-border-left: rgba(255, 255, 255, 0.15);
+            --glass-border-right: rgba(255, 255, 255, 0.05);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --glass-inner-glow: inset 0 2px 4px rgba(255, 255, 255, 0.15);
+            
+            --correct-glow: rgba(46, 204, 113, 0.3);
+            --incorrect-glow: rgba(231, 76, 60, 0.3);
+            --text-color: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            font-family: 'Montserrat', 'Helvetica Bold', Helvetica, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: var(--text-color);
+            background-color: #0f111a;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Ambient Background Orbs */
+        .ambient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        .orb-1 {
+            top: -10%; left: -10%;
+            width: 50vw; height: 50vw;
+            background: #1e3c72;
+            animation: float 12s ease-in-out infinite alternate;
+        }
+
+        .orb-2 {
+            bottom: -10%; right: -10%;
+            width: 40vw; height: 40vw;
+            background: #2a0845;
+            animation: float 15s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* Reusable Liquid Glass Class */
+        .liquid-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            border-top: 1px solid var(--glass-border-top);
+            border-left: 1px solid var(--glass-border-left);
+            border-right: 1px solid var(--glass-border-right);
+            border-bottom: 1px solid transparent;
+            box-shadow: var(--glass-shadow), var(--glass-inner-glow);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            margin-top: 10px;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+            letter-spacing: -0.5px;
+        }
+        
+        p { color: var(--text-muted); }
+
+        h2 {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--glass-border-left);
+            display: inline-block;
+        }
+
+        .quiz-container {
+            max-width: 750px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Sticky Glass Score Board */
+        .score-board {
+            position: sticky;
+            top: 20px;
+            padding: 15px 25px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            z-index: 100;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            border-radius: 50px; /* Pill shape */
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Touch Animation for Restart Button */
+        .restart-btn:active {
+            transform: scale(0.92);
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Glass Question Cards */
+        .question-card {
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            font-weight: 500;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        /* Liquid Glass Option Buttons */
+        .option-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border-top: 1px solid var(--glass-border-top);
+            border-left: 1px solid var(--glass-border-left);
+            border-right: 1px solid transparent;
+            border-bottom: 1px solid transparent;
+            color: var(--text-color);
+            padding: 16px 20px;
+            font-size: 1.05em;
+            font-weight: 500;
+            text-align: left;
+            border-radius: 16px; 
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-family: inherit;
+        }
+
+        /* Touch & Hover Animations */
+        .option-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2), var(--glass-inner-glow);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.96); /* The fluid touch shrink effect */
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        /* Dynamic Correct / Incorrect States */
+        .option-btn.correct {
+            background: rgba(46, 204, 113, 0.2);
+            border-top: 1px solid rgba(46, 204, 113, 0.6);
+            border-left: 1px solid rgba(46, 204, 113, 0.3);
+            box-shadow: 0 0 20px var(--correct-glow), var(--glass-inner-glow);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+
+        .option-btn.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-top: 1px solid rgba(231, 76, 60, 0.6);
+            border-left: 1px solid rgba(231, 76, 60, 0.3);
+            box-shadow: 0 0 20px var(--incorrect-glow), var(--glass-inner-glow);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            opacity: 0.7;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #2ecc71;
+            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .explanation-box.active {
+            display: block;
+        }
+
+        .explanation-title {
+            font-weight: 700;
+            color: #2ecc71;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 600px) {
+            .score-board {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+                padding: 20px;
+            }
+            .question-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Background Elements -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <header>
+        <h1>Data Management System</h1>
+        <p>CpET341 • Liquid Glass UI Edition</p>
+    </header>
+
+    <div class="quiz-container">
+        
+        <!-- Glass Score Board -->
+        <div class="score-board liquid-glass">
+            <span id="score-text">Score: 0 / 0</span>
+            <button class="restart-btn" onclick="restartQuiz()">🔄 Restart Quiz</button>
+        </div>
+        
+        <h2 id="part-1-title">I. Multiple Choice Questions</h2>
+        <div id="mc-container"></div>
+    </div>
+
+    <script>
+        const mcQuestions = [
+            { q: "1. Which best describes data?", ans: "A", exp: "Data refers to raw, unorganized facts and observations that need to be processed.", options: { A: "Recorded facts and observations", B: "Interpreted facts with meaning", C: "Applied understanding of information", D: "Software for managing records" } },
+            { q: "2. Does context matter when interpreting data?", ans: "A", exp: "Context provides meaning to raw data, turning it into useful information.", options: { A: "It gives values their meaning", B: "It changes data into hardware", C: "It removes the need for storage", D: "It prevents all data errors" } },
+            { q: "3. Which is an example of numeric data?", ans: "C", exp: "85 is a numerical value, representing quantitative data.", options: { A: "Database Management", B: "2026-08-19", C: "85", D: "Student ID" } },
+            { q: "4. Which is an example of textual data?", ans: "B", exp: "Textual data consists of words and strings, such as 'Database Management'.", options: { A: "08:30", B: "Database Management", C: "85", D: "20260045" } },
+            { q: "5. Which is an example of an identifier?", ans: "A", exp: "An identifier uniquely distinguishes an entity, like a specific Student ID.", options: { A: "Student ID: 20260045", B: "Final Exam Score: 85", C: "Three students enrolled", D: "Room capacity reached" } },
+            { q: "6. What is information?", ans: "B", exp: "Information is data that has been processed, organized, and given context.", options: { A: "Raw values without context", B: "Data given meaningful context", C: "Software that stores records", D: "Hardware that processes data" } },
+            { q: "7. Which statement is information?", ans: "D", exp: "A complete sentence providing context and meaning represents information, rather than raw data points.", options: { A: "1001", B: "DB101", C: "1001 DB101", D: "Three students are enrolled in DB101" } },
+            { q: "8. What results when data is organized and given meaning?", ans: "A", exp: "Organized data with assigned meaning becomes information.", options: { A: "Information", B: "Hardware", C: "Authorization", D: "Metadata" } },
+            { q: "9. Which best describes knowledge?", ans: "C", exp: "Knowledge is the applied understanding and actionable insight derived from information.", options: { A: "Recorded facts and values", B: "Meaningful data in storage", C: "Applied understanding of information", D: "Software for database control" } },
+            { q: "10. Which is an example of knowledge?", ans: "C", exp: "Knowledge involves actionable insights, such as realizing a new section is needed based on enrollment numbers.", options: { A: "42 enrollment records", B: "DB101 has 42 students", C: "DB101 may need another section", D: "Student ID 1001" } },
+            { q: "11. Which progression is correct?", ans: "C", exp: "The standard hierarchy is Data (raw) -> Information (processed) -> Knowledge (applied).", options: { A: "Knowledge -> Data -> Information", B: "Information -> Knowledge -> Data", C: "Data -> Information -> Knowledge", D: "Data -> Knowledge -> Information" } },
+            { q: "12. Which statement about large quantities of data is correct?", ans: "C", exp: "Large quantities of data must still be processed and interpreted to yield useful information and knowledge.", options: { A: "They automatically create knowledge", B: "They automatically create information", C: "They do not automatically create useful knowledge", D: "They eliminate the need for interpretation" } },
+            { q: "13. What is data management?", ans: "B", exp: "Data management encompasses the entire lifecycle of data, from creation to disposal.", options: { A: "Storing data in databases", B: "Managing data throughout its lifecycle", C: "Deleting data after processing", D: "Processing only numerical data" } },
+            { q: "14. Which activity is part of data management?", ans: "A", exp: "Data protection and security is a core activity within data management.", options: { A: "Protecting data", B: "Ignoring data errors", C: "Removing historical records", D: "Blocking authorized access" } },
+            { q: "15. Which stage begins the data lifecycle?", ans: "B", exp: "The data lifecycle begins with the creation or collection of new data.", options: { A: "Disposing of data", B: "Creating and collecting data", C: "Archiving stored data", D: "Sharing stored data" } },
+            { q: "16. What is the purpose of validating data?", ans: "A", exp: "Data validation ensures that the collected data meets the defined quality rules and requirements.", options: { A: "Checking data against requirements", B: "Deleting data after collection", C: "Hiding data from users", D: "Replacing the database system" } },
+            { q: "17. A required student ID is missing. What does this indicate?", ans: "A", exp: "Missing required identifiers indicate a failure in data completeness, which is a quality issue.", options: { A: "A data-quality problem", B: "A successful data backup", C: "A metadata description", D: "A completed transaction" } },
+            { q: "18. Why is storing data an important lifecycle stage?", ans: "A", exp: "Secure storage ensures that data remains available for future retrieval and processing.", options: { A: "It keeps validated data available", B: "It automatically creates knowledge", C: "It prevents data from aging", D: "It removes security concerns" } },
+            { q: "19. What can processing stored data produce?", ans: "A", exp: "Processing stored data typically yields meaningful information for decision-making.", options: { A: "Meaningful information", B: "Physical hardware", C: "User authorization", D: "Database metadata" } },
+            { q: "20. Why is security important when data is integrated?", ans: "A", exp: "When systems are integrated, data is shared across boundaries, making strict security crucial.", options: { A: "Systems may exchange shared data", B: "Integration removes access controls", C: "Combined data cannot be processed", D: "Integrated data must be deleted" } },
+            { q: "21. What is a database?", ans: "B", exp: "A database is fundamentally an organized, structured collection of related data.", options: { A: "Software for managing users", B: "An organized collection of related data", C: "A device that stores files", D: "A single database transaction" } },
+            { q: "22. What is a DBMS?", ans: "B", exp: "A Database Management System (DBMS) is the software suite used to interact with and manage the database.", options: { A: "A collection of database records", B: "Software that manages databases", C: "A backup copy of stored data", D: "A process for deleting records" } },
+            { q: "23. Which DBMS responsibility controls access permissions?", ans: "B", exp: "Authorization is the DBMS component responsible for verifying user access rights and permissions.", options: { A: "Integrity enforcement", B: "Authorization", C: "Transaction processing", D: "Metadata management" } },
+            { q: "24. Which DBMS responsibility checks data accuracy and consistency?", ans: "C", exp: "Integrity enforcement ensures data remains accurate, consistent, and adheres to business rules.", options: { A: "Authorization", B: "Backup and recovery", C: "Integrity enforcement", D: "Concurrency control" } },
+            { q: "25. What is a transaction?", ans: "A", exp: "A transaction is a logical unit of work consisting of one or more database operations.", options: { A: "A group of database operations", B: "A copy of database contents", C: "A description of stored data", D: "A view of user information" } },
+            { q: "26. What does concurrency control manage?", ans: "A", exp: "Concurrency control mechanisms prevent conflicts when multiple users access the database simultaneously.", options: { A: "Simultaneous database access", B: "Archived database records", C: "Textual data representation", D: "Physical database disposal" } },
+            { q: "27. What is the difference between backup and recovery?", ans: "A", exp: "Backups create copies of data for safekeeping, while recovery uses those copies to restore a lost or corrupted database.", options: { A: "Backup copies; recovery restores", B: "Backup restores; recovery copies", C: "Backup authorizes; recovery validates", D: "Backup processes; recovery integrates" } },
+            { q: "28. What does metadata mean?", ans: "A", exp: "Metadata provides context, structure, and constraints about the primary data (data about data).", options: { A: "Data about data", B: "Data without meaning", C: "Data awaiting deletion", D: "Data stored outside a database" } },
+            { q: "29. Which abstraction level describes how data is stored?", ans: "C", exp: "The physical/internal level of abstraction describes the lowest level: how the data is actually stored on disk.", options: { A: "External/view level", B: "Logical/conceptual level", C: "Physical/internal level", D: "Application level" } },
+            { q: "30. Which abstraction level describes what a user or application needs to see?", ans: "C", exp: "The external or view level describes only the part of the database that a specific user or application is permitted to see.", options: { A: "Physical/internal level", B: "Logical/conceptual level", C: "External/view level", D: "Recovery level" } }
+        ];
+
+        let currentScore = 0;
+        let answeredQuestions = 0;
+        const totalQuestions = mcQuestions.length;
+
+        function updateScore() {
+            const percentage = Math.round((currentScore / totalQuestions) * 100);
+            document.getElementById('score-text').innerText = `Score: ${currentScore} / ${totalQuestions} (${percentage}%)`;
+        }
+
+        function restartQuiz() {
+            currentScore = 0;
+            answeredQuestions = 0;
+            
+            document.getElementById('mc-container').innerHTML = '';
+            createQuiz(mcQuestions, 'mc-container');
+            
+            updateScore();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function createQuiz(questions, containerId) {
+            const container = document.getElementById(containerId);
+            
+            questions.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card liquid-glass';
+                
+                const questionText = document.createElement('div');
+                questionText.className = 'question-text';
+                questionText.innerText = item.q;
+                card.appendChild(questionText);
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+
+                for (const [key, value] of Object.entries(item.options)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = `${key}. ${value}`;
+                    
+                    btn.onclick = function() {
+                        const allBtns = optionsGrid.querySelectorAll('.option-btn');
+                        allBtns.forEach(b => b.disabled = true);
+
+                        if (key === item.ans) {
+                            btn.classList.add('correct');
+                            currentScore++;
+                        } else {
+                            btn.classList.add('incorrect');
+                            allBtns.forEach(b => {
+                                if (b.innerText.startsWith(item.ans)) {
+                                    b.classList.add('correct');
+                                }
+                            });
+                        }
+                        
+                        expBox.classList.add('active');
+                        answeredQuestions++;
+                        updateScore();
+                    };
+                    optionsGrid.appendChild(btn);
+                }
+                card.appendChild(optionsGrid);
+
+                const expBox = document.createElement('div');
+                expBox.className = 'explanation-box';
+                expBox.innerHTML = `<div class="explanation-title">Explanation:</div>${item.exp}`;
+                card.appendChild(expBox);
+
+                container.appendChild(card);
+            });
+        }
+
+        window.onload = () => {
+            createQuiz(mcQuestions, 'mc-container');
+            updateScore();
+        };
+    </script>
+</body>
+</html>
