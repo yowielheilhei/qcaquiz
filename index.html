@@ -7,6 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* Base Setup & Liquid Glass Variables */
+        *, *::before, *::after {
+            box-sizing: border-box; /* Fixes padding overflow issues */
+        }
+        
         :root {
             /* Dynamic variables updated by JS slider */
             --glass-blur: 16px;
@@ -125,7 +129,9 @@
             transition: all 0.3s ease;
             gap: 16px;
             width: fit-content;
-            min-width: 280px;
+            min-width: 320px;
+            max-width: 100%; /* Ensures it never overflows the screen */
+            text-align: center;
         }
 
         /* Slider Controls Styling */
@@ -142,7 +148,6 @@
             border-radius: 50px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             width: 100%;
-            box-sizing: border-box;
         }
 
         .slider-container input[type=range] {
@@ -294,7 +299,9 @@
         
         @media (max-width: 768px) {
             .score-board {
-                width: 90%;
+                width: 100%;
+                padding: 20px;
+                min-width: unset;
             }
             .question-card {
                 padding: 20px;
